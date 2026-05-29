@@ -2,6 +2,9 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Life Admin</title>
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600;9..40,700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
@@ -186,14 +189,15 @@ const todDS  = () => new Date().toISOString().split('T')[0];
 const daysUntil = ds => { const t=new Date();t.setHours(0,0,0,0); return Math.floor((new Date(ds+'T00:00:00')-t)/86400000); };
 const fmtDate = ds => { if(!ds) return '—'; try{return new Date(ds+'T00:00:00').toLocaleDateString('en-GB',{weekday:'short',day:'numeric',month:'short',year:'numeric'});}catch{return ds;} };
 const getStatus = (ds,done) => {
-  if(done) return {label:'Done',   badge:'b-grn',card:'c-done',cal:'cp-pur'};
-  if(!ds)  return {label:'No date',badge:'b-gray',card:'c-gray',cal:'cp-gray'};
-  const d=daysUntil(ds);
-  if(d<0)  return {label:'Overdue',badge:'b-red', card:'c-red', cal:'cp-red'};
-  if(d===0) return {label:'Today', badge:'b-red', card:'c-red', cal:'cp-red'};
-  if(d<=7)  return {label:d+'d',  badge:'b-yel', card:'c-yel', cal:'cp-yel'};
-  if(d<=30) return {label:d+'d',  badge:'b-pur', card:'c-pur', cal:'cp-pur'};
-  return           {label:d+'d',  badge:'b-ind', card:'c-ind', cal:'cp-ind'};
+  if(done)              return {label:'Done',   badge:'b-grn', card:'c-done',cal:'cp-pur'};
+  if(!ds || ds==='null') return {label:'No date',badge:'b-gray',card:'c-gray',cal:'cp-gray'};
+  const d = daysUntil(ds);
+  if(isNaN(d))           return {label:'No date',badge:'b-gray',card:'c-gray',cal:'cp-gray'};
+  if(d<0)                return {label:'Overdue',badge:'b-red', card:'c-red', cal:'cp-red'};
+  if(d===0)              return {label:'Today',  badge:'b-red', card:'c-red', cal:'cp-red'};
+  if(d<=30)              return {label:d+'d',    badge:'b-yel', card:'c-yel', cal:'cp-yel'};
+  if(d<=90)              return {label:d+'d',    badge:'b-pur', card:'c-pur', cal:'cp-pur'};
+  return                        {label:d+'d',    badge:'b-ind', card:'c-ind', cal:'cp-ind'};
 };
 const CURRENCIES=[{code:'HKD',sym:'HK$'},{code:'GBP',sym:'£'},{code:'USD',sym:'$'},{code:'EUR',sym:'€'},{code:'THB',sym:'฿'},{code:'SGD',sym:'S$'},{code:'JPY',sym:'¥'},{code:'AUD',sym:'A$'}];
 const getCur = c => CURRENCIES.find(x=>x.code===c)||CURRENCIES[0];
