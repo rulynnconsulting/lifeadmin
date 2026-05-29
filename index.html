@@ -23,6 +23,7 @@
   --ind:#4F46E5;--ind2:#4338CA;--ind-bg:#EEF2FF;--ind-ri:#C7D2FE;
   --t1:#111827;--t2:#374151;--t3:#6B7280;--t4:#9CA3AF;
   --red:#DC2626;--red-bg:#FEF2F2;--red-bd:#FECACA;
+  --ora:#EA580C;--ora-bg:#FFF7ED;--ora-bd:#FED7AA;
   --yel:#CA8A04;--yel-bg:#FEFCE8;--yel-bd:#FEF08A;
   --pur:#7C3AED;--pur-bg:#F5F3FF;--pur-bd:#DDD6FE;
   --grn:#059669;--grn-bg:#ECFDF5;--grn-bd:#A7F3D0;
@@ -78,6 +79,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--t1);-webkit-font-s
 .kpi-num{font-size:26px;font-weight:700;line-height:1;letter-spacing:-.5px}
 .kpi-dsc{font-size:11px;margin-top:7px;opacity:.7}
 .k-red{background:linear-gradient(135deg,#FEF2F2,#FEE2E2);color:#7F1D1D;border-color:#FECACA}.k-red.on{border-color:var(--red)}
+.k-ora{background:linear-gradient(135deg,#FFF7ED,#FFEDD5);color:#7C2D12;border-color:#FED7AA}.k-ora.on{border-color:var(--ora)}
 .k-yel{background:linear-gradient(135deg,#FEFCE8,#FEF9C3);color:#713F12;border-color:#FEF08A}.k-yel.on{border-color:var(--yel)}
 .k-pur{background:linear-gradient(135deg,#F5F3FF,#EDE9FE);color:#3B0764;border-color:#DDD6FE}.k-pur.on{border-color:var(--pur)}
 .k-grn{background:linear-gradient(135deg,#ECFDF5,#D1FAE5);color:#064E3B;border-color:#A7F3D0}.k-grn.on{border-color:var(--grn)}
@@ -103,6 +105,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--t1);-webkit-font-s
 .card{background:var(--sur);border:1px solid var(--bdr);border-radius:var(--r);padding:13px 14px;display:flex;align-items:flex-start;gap:11px;transition:all 190ms}
 .card:hover{border-color:var(--bdh);box-shadow:0 4px 12px -2px rgba(0,0,0,.08);transform:translateY(-1px)}
 .card.c-red{border-left:3px solid var(--red)}
+.card.c-ora{border-left:3px solid var(--ora)}
 .card.c-yel{border-left:3px solid var(--yel)}
 .card.c-pur{border-left:3px solid var(--pur)}
 .card.c-done{opacity:.55}
@@ -116,6 +119,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--t1);-webkit-font-s
 .badge{display:inline-flex;align-items:center;gap:4px;padding:3px 9px;border-radius:20px;font-size:11px;font-weight:700}
 .badge::before{content:'';width:5px;height:5px;border-radius:50%;background:currentColor;flex-shrink:0;opacity:.75}
 .b-red{background:var(--red-bg);color:var(--red);border:1px solid var(--red-bd)}
+.b-ora{background:var(--ora-bg);color:var(--ora);border:1px solid var(--ora-bd)}
 .b-yel{background:var(--yel-bg);color:var(--yel);border:1px solid var(--yel-bd)}
 .b-pur{background:var(--pur-bg);color:var(--pur);border:1px solid var(--pur-bd)}
 .b-grn{background:var(--grn-bg);color:var(--grn);border:1px solid var(--grn-bd)}
@@ -147,6 +151,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--t1);-webkit-font-s
 .cal-cell.ist .cal-dn2{background:var(--ind);color:#fff}
 .cal-pill{font-size:10px;font-weight:600;padding:2px 6px;border-radius:4px;margin-bottom:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%;display:block;line-height:1.4}
 .cp-red{background:var(--red-bg);color:var(--red)}
+.cp-ora{background:var(--ora-bg);color:var(--ora)}
 .cp-yel{background:var(--yel-bg);color:var(--yel)}
 .cp-pur{background:var(--pur-bg);color:var(--pur)}
 .cp-gray{background:#F3F4F6;color:#6B7280}
@@ -195,6 +200,7 @@ const getStatus = (ds,done) => {
   if(isNaN(d))           return {label:'No date',badge:'b-gray',card:'c-gray',cal:'cp-gray'};
   if(d<0)                return {label:'Overdue',badge:'b-red', card:'c-red', cal:'cp-red'};
   if(d===0)              return {label:'Today',  badge:'b-red', card:'c-red', cal:'cp-red'};
+  if(d<=7)               return {label:d+'d',    badge:'b-ora', card:'c-ora', cal:'cp-ora'};
   if(d<=30)              return {label:d+'d',    badge:'b-yel', card:'c-yel', cal:'cp-yel'};
   if(d<=90)              return {label:d+'d',    badge:'b-pur', card:'c-pur', cal:'cp-pur'};
   return                        {label:d+'d',    badge:'b-ind', card:'c-ind', cal:'cp-ind'};
@@ -454,12 +460,12 @@ function App() {
   const completed=useMemo(()=>items.filter(i=>i.completed),[items]);
   const stats=useMemo(()=>{
     const now=new Date();now.setHours(0,0,0,0);
-    const nm=new Date(now.getFullYear(),now.getMonth()+1,0);
-    const e90=new Date(now.getTime()+90*86400000);
+    const e7 =new Date(now.getTime()+7*86400000);
+    const e30=new Date(now.getTime()+30*86400000);
     return{
       today:pending.filter(i=>i.date&&daysUntil(i.date)<=0).length,
-      month:pending.filter(i=>{if(!i.date)return false;const d=new Date(i.date+'T00:00:00');return d>=now&&d<=nm;}).length,
-      d90:pending.filter(i=>{if(!i.date)return false;const d=new Date(i.date+'T00:00:00');return d>=now&&d<=e90;}).length,
+      d7:   pending.filter(i=>{if(!i.date)return false;const d=new Date(i.date+'T00:00:00');return d>now&&d<=e7;}).length,
+      d30:pending.filter(i=>{if(!i.date)return false;const d=new Date(i.date+'T00:00:00');return d>=now&&d<=e30;}).length,
       done:completed.length,
     };
   },[pending,completed]);
@@ -467,11 +473,11 @@ function App() {
   const filtered=useMemo(()=>{
     let list=kpi==='done'?completed:pending;
     const now=new Date();now.setHours(0,0,0,0);
-    const nm=new Date(now.getFullYear(),now.getMonth()+1,0);
-    const e90=new Date(now.getTime()+90*86400000);
+    const e7 =new Date(now.getTime()+7*86400000);
+    const e30=new Date(now.getTime()+30*86400000);
     if(kpi==='today') list=list.filter(i=>i.date&&daysUntil(i.date)<=0);
-    if(kpi==='month') list=list.filter(i=>{if(!i.date)return false;const d=new Date(i.date+'T00:00:00');return d>=now&&d<=nm;});
-    if(kpi==='90d')   list=list.filter(i=>{if(!i.date)return false;const d=new Date(i.date+'T00:00:00');return d>=now&&d<=e90;});
+    if(kpi==='7d')    list=list.filter(i=>{if(!i.date)return false;const d=new Date(i.date+'T00:00:00');return d>now&&d<=e7;});
+    if(kpi==='30d')   list=list.filter(i=>{if(!i.date)return false;const d=new Date(i.date+'T00:00:00');return d>=now&&d<=e30;});
     if(search.trim()){const q=search.toLowerCase();list=list.filter(i=>(i.item_name||'').toLowerCase().includes(q)||(i.category||'').toLowerCase().includes(q)||(i.supplier||'').toLowerCase().includes(q));}
     return list;
   },[pending,completed,kpi,search]);
@@ -479,15 +485,16 @@ function App() {
   const grouped=useMemo(()=>{
     if(kpi!=='all'||search.trim()) return null;
     const now=new Date();now.setHours(0,0,0,0);
-    const e7=new Date(now.getTime()+7*86400000);
-    const nm=new Date(now.getFullYear(),now.getMonth()+1,0);
+    const e7 =new Date(now.getTime()+7*86400000);
+    const e30=new Date(now.getTime()+30*86400000);
     const e90=new Date(now.getTime()+90*86400000);
     return{
       overdue:pending.filter(i=>i.date&&daysUntil(i.date)<0),
       today:pending.filter(i=>i.date&&daysUntil(i.date)===0),
       week:pending.filter(i=>{if(!i.date)return false;const d=new Date(i.date+'T00:00:00');return d>now&&d<=e7;}),
-      month:pending.filter(i=>{if(!i.date)return false;const d=new Date(i.date+'T00:00:00');return d>e7&&d<=nm;}),
-      future:pending.filter(i=>{if(!i.date)return false;const d=new Date(i.date+'T00:00:00');return d>nm&&d<=e90;}),
+      month:   pending.filter(i=>{if(!i.date)return false;const d=new Date(i.date+'T00:00:00');return d>e7&&d<=e30;}),
+      future:  pending.filter(i=>{if(!i.date)return false;const d=new Date(i.date+'T00:00:00');return d>e30&&d<=e90;}),
+      beyond:  pending.filter(i=>{if(!i.date)return false;const d=new Date(i.date+'T00:00:00');return d>e90;}),
       nodates:pending.filter(i=>!i.date),
     };
   },[pending,kpi,search]);
@@ -522,7 +529,7 @@ function App() {
             <button className="add-btn" onClick={openAdd}>{IC.plus} New Item</button>
           </div>
           <div className="kpi-row">
-            {[{k:'today',cls:'k-red',num:stats.today,lbl:'Due Today',dsc:'overdue + today'},{k:'month',cls:'k-yel',num:stats.month,lbl:'This Month',dsc:'this calendar month'},{k:'90d',cls:'k-pur',num:stats.d90,lbl:'90 Days',dsc:'within 90 days'},{k:'done',cls:'k-grn',num:stats.done,lbl:'Completed',dsc:'all time'}].map(({k,cls,num,lbl,dsc})=>(
+            {[{k:'today',cls:'k-red',num:stats.today,lbl:'Due Today',dsc:'overdue + today'},{k:'7d',cls:'k-ora',num:stats.d7,lbl:'7 Days',dsc:'within 7 days'},{k:'30d',cls:'k-yel',num:stats.d30,lbl:'30 Days',dsc:'within 30 days'},{k:'done',cls:'k-grn',num:stats.done,lbl:'Completed',dsc:'all time'}].map(({k,cls,num,lbl,dsc})=>(
               <div key={k} className={`kpi ${cls}${kpi===k?' on':''}`} onClick={()=>setKpi(p=>p===k?'all':k)}>
                 <div className="kpi-lbl">{lbl}</div><div className="kpi-num">{num}</div><div className="kpi-dsc">{dsc}</div>
               </div>
@@ -532,7 +539,7 @@ function App() {
         <div className="toolbar">
           <div className="srch-w">{IC.srch}<input className="srch-in" type="text" placeholder="Search…" value={search} onChange={e=>setSearch(e.target.value)}/></div>
           {search&&<button className="tb-btn" onClick={()=>setSearch('')}>{IC.x} Clear</button>}
-          {kpi!=='all'&&<button className="tb-btn on" onClick={()=>setKpi('all')}>{IC.x} {kpi==='today'?'Today':kpi==='month'?'Month':kpi==='90d'?'90 Days':'Completed'}</button>}
+          {kpi!=='all'&&<button className="tb-btn on" onClick={()=>setKpi('all')}>{IC.x} {kpi==='today'?'Today':kpi==='7d'?'7 Days':kpi==='30d'?'30 Days':'Completed'}</button>}
           <span className={`sync-badge ${sync==='ok'?'s-ok':sync==='err'?'s-err':'s-ing'}`}>{sync==='ok'?'✓ '+syncMsg:sync==='err'?'⚠ Error':sync==='syncing'?'Syncing…':'Ready'}</span>
         </div>
         <div className="scroll">
@@ -541,12 +548,12 @@ function App() {
             {view==='dashboard'&&(
               <>
                 {kpi==='done'&&(completed.length===0?<div className="empty"><p>No completed items yet.</p></div>:<Section label="Completed" list={completed}/>)}
-                {kpi!=='done'&&isFiltered&&(filtered.length===0?<div className="empty"><p>No items match.</p></div>:<Section label={kpi==='today'?'Due Today & Overdue':kpi==='month'?'This Month':kpi==='90d'?'Next 90 Days':'Search Results'} list={filtered}/>)}
+                {kpi!=='done'&&isFiltered&&(filtered.length===0?<div className="empty"><p>No items match.</p></div>:<Section label={kpi==='today'?'Due Today & Overdue':kpi==='7d'?'Next 7 Days':kpi==='30d'?'Next 30 Days':'Search Results'} list={filtered}/>)}
                 {kpi==='all'&&!search.trim()&&grouped&&(()=>{
                   const{overdue,today,week,month,future,nodates}=grouped;
                   const empty=!overdue.length&&!today.length&&!week.length&&!month.length&&!future.length&&!nodates.length;
                   if(empty) return <div className="empty"><p>Nothing pending 🎉</p><p style={{marginTop:6,fontSize:13}}>Click + New Item to add tasks.</p></div>;
-                  return <><Section label="Overdue" list={overdue}/><Section label="Due Today" list={today}/><Section label="This Week" list={week}/><Section label="This Month" list={month}/><Section label="Next 90 Days" list={future}/><Section label="No Date Set" list={nodates}/></>;
+                  return <><Section label="Overdue" list={overdue}/><Section label="Due Today" list={today}/><Section label="Next 7 Days" list={week}/><Section label="Next 30 Days" list={month}/><Section label="31–90 Days" list={future}/><Section label="90+ Days" list={beyond}/><Section label="No Date Set" list={nodates}/></>;
                 })()}
               </>
             )}
