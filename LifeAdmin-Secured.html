@@ -519,7 +519,6 @@ function App() {
       } else {
         // INSERT
         const newItem = {
-          id:           uid(),
           item_name:    f.item_name,
           category:     f.category,
           country:      f.country,
@@ -530,6 +529,7 @@ function App() {
           amount:       f.amount || null,
           notes:        f.notes  || null,
           completed:    false,
+          user_id:      '44c7c457-e37e-4f0e-9be6-0616883b80d0',
         };
         const { error } = await sb.from('items').insert([newItem]);
         if (error) throw error;
