@@ -1,284 +1,239 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Life Admin</title>
-  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600;9..40,700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
-  <script src="https://cdn.tailwindcss.com"></script>
-  <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
-  <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
-  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <style>
-    *,*::before,*::after{box-sizing:border-box}
-    :root{
-      --font:'DM Sans',system-ui,sans-serif;
-      --mono:'DM Mono',monospace;
-      --bg:#F2F3F5;--sur:#FFFFFF;--s2:#F8F9FA;
-      --bdr:#E5E7EB;--bdh:#D1D5DB;
-      --ind:#4F46E5;--ind2:#4338CA;--ind-bg:#EEF2FF;--ind-ri:#C7D2FE;
-      --t1:#111827;--t2:#374151;--t3:#6B7280;--t4:#9CA3AF;
-      --red:#DC2626;--red-bg:#FEF2F2;--red-bd:#FECACA;
-      --yel:#CA8A04;--yel-bg:#FEFCE8;--yel-bd:#FEF08A;
-      --pur:#7C3AED;--pur-bg:#F5F3FF;--pur-bd:#DDD6FE;
-      --grn:#059669;--grn-bg:#ECFDF5;--grn-bd:#A7F3D0;
-      --r:10px;--rs:6px;--rl:14px;--rxl:18px;
-    }
-    html,body,#root{width:100%;height:100%;margin:0;padding:0}
-    body{font-family:var(--font);background:var(--bg);color:var(--t1);-webkit-font-smoothing:antialiased}
-
-    /* AUTH */
-    .auth-wrap{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px;background:linear-gradient(135deg,#EEF2FF 0%,#F5F3FF 100%)}
-    .auth-card{background:#fff;border-radius:var(--rxl);box-shadow:0 20px 40px -8px rgba(0,0,0,.14);width:100%;max-width:420px;padding:40px}
-    .auth-logo{text-align:center;margin-bottom:32px}
-    .auth-logo h1{font-size:26px;font-weight:700;color:var(--t1);margin:0 0 6px;letter-spacing:-.5px}
-    .auth-logo p{font-size:13px;color:var(--t3);margin:0}
-    .auth-tabs{display:flex;gap:0;margin-bottom:28px;border-bottom:2px solid var(--bdr)}
-    .auth-tab{flex:1;padding:10px;font-size:13px;font-weight:600;color:var(--t3);cursor:pointer;border:none;background:none;border-bottom:2px solid transparent;margin-bottom:-2px;transition:all 140ms}
-    .auth-tab.on{color:var(--ind);border-color:var(--ind)}
-    .fg{margin-bottom:16px}
-    .fl{display:block;font-size:11.5px;font-weight:600;color:var(--t2);margin-bottom:5px;letter-spacing:.02em}
-    .fi{width:100%;padding:10px 13px;background:var(--s2);border:1px solid var(--bdr);border-radius:var(--rs);font-size:13px;font-family:var(--font);color:var(--t1);outline:none;transition:all 140ms}
-    .fi:focus{background:#fff;border-color:var(--ind);box-shadow:0 0 0 3px rgba(79,70,229,.1)}
-    .fi::placeholder{color:var(--t4)}
-    .err-msg{background:var(--red-bg);border:1px solid var(--red-bd);color:var(--red);padding:10px 13px;border-radius:var(--rs);font-size:12.5px;margin-bottom:14px}
-    .ok-msg{background:var(--grn-bg);border:1px solid var(--grn-bd);color:var(--grn);padding:10px 13px;border-radius:var(--rs);font-size:12.5px;margin-bottom:14px}
-    .btn-primary{width:100%;padding:11px;background:var(--ind);border:1px solid var(--ind2);border-radius:var(--rs);font-size:13.5px;font-weight:600;font-family:var(--font);color:#fff;cursor:pointer;transition:all 140ms;margin-top:6px}
-    .btn-primary:hover{background:var(--ind2)}
-    .btn-primary:disabled{opacity:.6;cursor:not-allowed}
-
-    /* LAYOUT */
-    .app{display:flex;height:100vh;overflow:hidden}
-    .sidebar{width:220px;min-width:220px;background:var(--sur);border-right:1px solid var(--bdr);display:flex;flex-direction:column;height:100vh}
-    .sb-logo{padding:20px 18px 16px;border-bottom:1px solid var(--bdr)}
-    .sb-logo h1{font-size:16px;font-weight:700;color:var(--t1);margin:0 0 3px}
-    .sb-logo p{font-size:11px;color:var(--t4);margin:0}
-    .sb-user{padding:10px 18px;border-bottom:1px solid var(--bdr);font-size:11px;color:var(--t3)}
-    .sb-user strong{display:block;color:var(--t1);font-size:11.5px;margin-top:2px;word-break:break-all}
-    .sb-nav{padding:8px;flex:1;display:flex;flex-direction:column;gap:1px}
-    .nav-it{display:flex;align-items:center;gap:8px;padding:9px 11px;border-radius:var(--rs);font-size:13px;font-weight:500;color:var(--t3);cursor:pointer;border:none;background:transparent;width:100%;text-align:left;transition:all 140ms}
-    .nav-it:hover{background:var(--s2);color:var(--t2)}
-    .nav-it.on{background:var(--ind-bg);color:var(--ind);font-weight:600}
-    .sb-foot{padding:10px;border-top:1px solid var(--bdr)}
-    .logout-btn{width:100%;padding:8px 13px;background:var(--red-bg);border:1px solid var(--red-bd);border-radius:var(--rs);font-size:12.5px;font-weight:600;font-family:var(--font);color:var(--red);cursor:pointer;transition:all 140ms;display:flex;align-items:center;justify-content:center;gap:6px}
-    .logout-btn:hover{background:var(--red);color:#fff}
-
-    /* MAIN */
-    .main{flex:1;display:flex;flex-direction:column;overflow:hidden;min-width:0}
-    .hdr{background:var(--sur);border-bottom:1px solid var(--bdr);padding:20px 28px 0;flex-shrink:0}
-    .hdr-top{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:16px}
-    .hdr-title{font-size:20px;font-weight:700;color:var(--t1);letter-spacing:-.4px;margin:0}
-    .hdr-sub{font-size:12.5px;color:var(--t3);margin:3px 0 0}
-    .add-btn{display:flex;align-items:center;gap:6px;padding:9px 18px;background:var(--ind);border:1px solid var(--ind2);border-radius:var(--rs);font-size:13px;font-weight:600;font-family:var(--font);color:#fff;cursor:pointer;transition:all 140ms;white-space:nowrap}
-    .add-btn:hover{background:var(--ind2);transform:translateY(-1px)}
-
-    /* KPI */
-    .kpi-row{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;padding-bottom:18px}
-    .kpi{border-radius:var(--r);padding:14px 16px;cursor:pointer;border:2px solid transparent;transition:all 170ms;position:relative;overflow:hidden}
-    .kpi:hover{transform:translateY(-2px);box-shadow:0 4px 12px -2px rgba(0,0,0,.08)}
-    .kpi.on{box-shadow:0 8px 24px -4px rgba(0,0,0,.10);transform:translateY(-2px)}
-    .kpi.on::after{content:'';position:absolute;bottom:0;left:0;right:0;height:3px;background:currentColor;opacity:.7}
-    .kpi-lbl{font-size:10px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;margin-bottom:8px}
-    .kpi-num{font-size:26px;font-weight:700;line-height:1;letter-spacing:-.5px}
-    .kpi-dsc{font-size:11px;margin-top:7px;opacity:.7}
-    .k-red{background:linear-gradient(135deg,#FEF2F2,#FEE2E2);color:#7F1D1D;border-color:#FECACA}.k-red.on{border-color:var(--red)}
-    .k-yel{background:linear-gradient(135deg,#FEFCE8,#FEF9C3);color:#713F12;border-color:#FEF08A}.k-yel.on{border-color:var(--yel)}
-    .k-pur{background:linear-gradient(135deg,#F5F3FF,#EDE9FE);color:#3B0764;border-color:#DDD6FE}.k-pur.on{border-color:var(--pur)}
-    .k-grn{background:linear-gradient(135deg,#ECFDF5,#D1FAE5);color:#064E3B;border-color:#A7F3D0}.k-grn.on{border-color:var(--grn)}
-
-    /* TOOLBAR */
-    .toolbar{display:flex;align-items:center;gap:8px;padding:10px 28px;background:rgba(242,243,245,.9);backdrop-filter:blur(8px);border-bottom:1px solid var(--bdr);flex-shrink:0}
-    .srch-w{flex:1;position:relative}
-    .srch-w svg{position:absolute;left:11px;top:50%;transform:translateY(-50%);color:var(--t4);pointer-events:none}
-    .srch-in{width:100%;padding:8px 12px 8px 36px;background:var(--sur);border:1px solid var(--bdr);border-radius:var(--rs);font-size:13px;font-family:var(--font);color:var(--t1);outline:none;transition:all 140ms}
-    .srch-in:focus{border-color:var(--ind);box-shadow:0 0 0 3px rgba(79,70,229,.1)}
-    .srch-in::placeholder{color:var(--t4)}
-    .tb-btn{display:flex;align-items:center;gap:6px;padding:8px 13px;background:var(--sur);border:1px solid var(--bdr);border-radius:var(--rs);font-size:12.5px;font-weight:500;font-family:var(--font);color:var(--t2);cursor:pointer;transition:all 140ms;white-space:nowrap}
-    .tb-btn:hover{background:var(--s2)}
-    .tb-btn.on{background:var(--ind-bg);border-color:var(--ind-ri);color:var(--ind)}
-
-    /* SYNC BADGE */
-    .sync-badge{font-size:11px;padding:4px 10px;border-radius:20px;font-weight:600;white-space:nowrap}
-    .sync-ok{background:var(--grn-bg);color:var(--grn);border:1px solid var(--grn-bd)}
-    .sync-err{background:var(--red-bg);color:var(--red);border:1px solid var(--red-bd)}
-    .sync-ing{background:var(--yel-bg);color:var(--yel);border:1px solid var(--yel-bd)}
-
-    /* SCROLL */
-    .scroll{flex:1;overflow-y:auto;min-height:0}
-    .content{padding:20px 28px 48px}
-
-    /* SECTIONS */
-    .sec-hd{font-size:10.5px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--t4);margin:0 0 8px;display:flex;align-items:center;gap:7px}
-    .sec-hd em{background:var(--bdr);color:var(--t3);font-size:10px;font-style:normal;padding:1px 7px;border-radius:20px;font-family:var(--mono)}
-    .sec-blk{margin-bottom:24px}
-    .item-list{display:flex;flex-direction:column;gap:5px}
-
-    /* TASK CARD */
-    .card{background:var(--sur);border:1px solid var(--bdr);border-radius:var(--r);padding:13px 14px;display:flex;align-items:flex-start;gap:11px;transition:all 190ms}
-    .card:hover{border-color:var(--bdh);box-shadow:0 4px 12px -2px rgba(0,0,0,.08);transform:translateY(-1px)}
-    .card.c-red{border-left:3px solid var(--red)}
-    .card.c-yel{border-left:3px solid var(--yel)}
-    .card.c-pur{border-left:3px solid var(--pur)}
-    .card.c-done{opacity:.55}
-    .chk{width:17px;height:17px;min-width:17px;border-radius:4px;border:2px solid var(--bdh);background:transparent;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all 140ms;margin-top:2px;padding:0}
-    .chk:hover:not(.done){border-color:var(--grn)}
-    .chk.done{background:var(--grn);border-color:var(--grn)}
-    .card-body{flex:1;min-width:0}
-    .card-name{font-size:13.5px;font-weight:600;color:var(--t1);margin:0 0 6px;line-height:1.35}
-    .card-name.done{text-decoration:line-through;color:var(--t4)}
-    .meta{display:flex;align-items:center;flex-wrap:wrap;gap:5px}
-    .badge{display:inline-flex;align-items:center;gap:4px;padding:3px 9px;border-radius:20px;font-size:11px;font-weight:700}
-    .badge::before{content:'';width:5px;height:5px;border-radius:50%;background:currentColor;flex-shrink:0;opacity:.75}
-    .b-red{background:var(--red-bg);color:var(--red);border:1px solid var(--red-bd)}
-    .b-yel{background:var(--yel-bg);color:var(--yel);border:1px solid var(--yel-bd)}
-    .b-pur{background:var(--pur-bg);color:var(--pur);border:1px solid var(--pur-bd)}
-    .b-grn{background:var(--grn-bg);color:var(--grn);border:1px solid var(--grn-bd)}
-    .tag{background:var(--s2);border:1px solid var(--bdr);color:var(--t3);font-size:11px;font-weight:500;padding:2px 8px;border-radius:20px}
-    .amt{font-family:var(--mono);font-size:11.5px;color:var(--t2);background:var(--s2);border:1px solid var(--bdr);padding:2px 8px;border-radius:20px}
-    .card-info{margin-top:7px;display:flex;align-items:center;gap:12px;font-size:11.5px;color:var(--t4);flex-wrap:wrap}
-    .card-acts{display:flex;gap:1px;opacity:0;transition:opacity 140ms}
-    .card:hover .card-acts{opacity:1}
-    .ico{width:28px;height:28px;border-radius:var(--rs);border:none;background:transparent;cursor:pointer;display:flex;align-items:center;justify-content:center;color:var(--t4);transition:all 140ms}
-    .ico.ed:hover{background:var(--ind-bg);color:var(--ind)}
-    .ico.dl:hover{background:var(--red-bg);color:var(--red)}
-
-    /* EMPTY */
-    .empty{text-align:center;padding:56px 20px;color:var(--t4)}
-    .empty p{margin:0;font-size:14px}
-
-    /* CALENDAR */
-    .cal-wrap{background:var(--sur);border:1px solid var(--bdr);border-radius:var(--rl);overflow:hidden}
-    .cal-hd{display:flex;align-items:center;justify-content:space-between;padding:16px 20px;border-bottom:1px solid var(--bdr)}
-    .cal-title{font-size:14px;font-weight:700;color:var(--t1)}
-    .cal-nav{display:flex;gap:5px}
-    .cal-nb{padding:5px 13px;background:var(--s2);border:1px solid var(--bdr);border-radius:var(--rs);font-size:12px;font-weight:500;font-family:var(--font);color:var(--t2);cursor:pointer;transition:all 140ms}
-    .cal-nb:hover,.cal-nb.td{background:var(--ind-bg);border-color:var(--ind-ri);color:var(--ind)}
-    .cal-head-row{display:grid;grid-template-columns:repeat(7,1fr);background:var(--s2);border-bottom:1px solid var(--bdr)}
-    .cal-dn{text-align:center;padding:9px 4px;font-size:10.5px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--t4)}
-    .cal-grid{display:grid;grid-template-columns:repeat(7,1fr)}
-    .cal-cell{min-height:84px;padding:7px;border-right:1px solid var(--bdr);border-bottom:1px solid var(--bdr)}
-    .cal-cell:nth-child(7n){border-right:none}
-    .cal-cell.omo{background:var(--s2)}
-    .cal-cell.ist{background:#FFFDF0}
-    .cal-dn2{font-size:11.5px;font-weight:600;color:var(--t3);margin-bottom:5px;display:inline-flex;align-items:center;justify-content:center;width:21px;height:21px;border-radius:50%}
-    .cal-cell.omo .cal-dn2{color:var(--t4);opacity:.4}
-    .cal-cell.ist .cal-dn2{background:var(--ind);color:#fff}
-    .cal-pill{font-size:10px;font-weight:600;padding:2px 6px;border-radius:4px;margin-bottom:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%;display:block;line-height:1.4}
-    .cp-red{background:var(--red-bg);color:var(--red)}
-    .cp-yel{background:var(--yel-bg);color:var(--yel)}
-    .cp-pur{background:var(--pur-bg);color:var(--pur)}
-    .cal-more{font-size:9.5px;color:var(--t4)}
-
-    /* MODAL */
-    .overlay{position:fixed;inset:0;background:rgba(0,0,0,.38);backdrop-filter:blur(4px);z-index:100;display:flex;align-items:center;justify-content:center;padding:16px}
-    .modal{background:var(--sur);border-radius:var(--rxl);box-shadow:0 20px 40px -8px rgba(0,0,0,.14);width:100%;max-width:480px;max-height:90vh;overflow-y:auto}
-    .mhd{display:flex;align-items:center;justify-content:space-between;padding:18px 22px 16px;border-bottom:1px solid var(--bdr);position:sticky;top:0;background:var(--sur);z-index:1;border-radius:var(--rxl) var(--rxl) 0 0}
-    .mhd h2{font-size:15px;font-weight:700;color:var(--t1);margin:0}
-    .mclose{width:30px;height:30px;border-radius:var(--rs);border:1px solid var(--bdr);background:var(--s2);cursor:pointer;display:flex;align-items:center;justify-content:center;color:var(--t3);transition:all 140ms}
-    .mclose:hover{background:var(--red-bg);border-color:var(--red-bd);color:var(--red)}
-    .mbd{padding:20px 22px}
-    .fr{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px}
-    .fg2{margin-bottom:14px}
-    .amt-row{display:flex;gap:6px}
-    .amt-cur{width:96px;flex-shrink:0}
-    .amt-num{flex:1;min-width:0}
-    .mfoot{display:flex;gap:9px;padding-top:16px;border-top:1px solid var(--bdr);margin-top:18px}
-    .btn-p{flex:1;padding:10px;background:var(--ind);border:1px solid var(--ind2);border-radius:var(--rs);font-size:13.5px;font-weight:600;font-family:var(--font);color:#fff;cursor:pointer;transition:all 140ms}
-    .btn-p:hover{background:var(--ind2)}
-    .btn-s{flex:1;padding:10px;background:var(--s2);border:1px solid var(--bdr);border-radius:var(--rs);font-size:13.5px;font-weight:600;font-family:var(--font);color:var(--t2);cursor:pointer;transition:all 140ms}
-    .btn-s:hover{background:var(--bdr)}
-  </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Life Admin</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600;9..40,700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script src="https://cdn.tailwindcss.com"></script>
+<script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+<script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+<script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+*,*::before,*::after{box-sizing:border-box}
+:root{
+  --font:'DM Sans',system-ui,sans-serif;
+  --mono:'DM Mono',monospace;
+  --bg:#F2F3F5;--sur:#FFFFFF;--s2:#F8F9FA;
+  --bdr:#E5E7EB;--bdh:#D1D5DB;
+  --ind:#4F46E5;--ind2:#4338CA;--ind-bg:#EEF2FF;--ind-ri:#C7D2FE;
+  --t1:#111827;--t2:#374151;--t3:#6B7280;--t4:#9CA3AF;
+  --red:#DC2626;--red-bg:#FEF2F2;--red-bd:#FECACA;
+  --yel:#CA8A04;--yel-bg:#FEFCE8;--yel-bd:#FEF08A;
+  --pur:#7C3AED;--pur-bg:#F5F3FF;--pur-bd:#DDD6FE;
+  --grn:#059669;--grn-bg:#ECFDF5;--grn-bd:#A7F3D0;
+  --r:10px;--rs:6px;--rl:14px;--rxl:18px;
+}
+html,body,#root{width:100%;height:100%;margin:0;padding:0}
+body{font-family:var(--font);background:var(--bg);color:var(--t1);-webkit-font-smoothing:antialiased}
+.auth-wrap{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px;background:linear-gradient(135deg,#EEF2FF,#F5F3FF)}
+.auth-card{background:#fff;border-radius:var(--rxl);box-shadow:0 20px 40px -8px rgba(0,0,0,.14);width:100%;max-width:420px;padding:40px}
+.auth-logo{text-align:center;margin-bottom:32px}
+.auth-logo h1{font-size:26px;font-weight:700;color:var(--t1);margin:0 0 6px;letter-spacing:-.5px}
+.auth-logo p{font-size:13px;color:var(--t3);margin:0}
+.auth-tabs{display:flex;margin-bottom:28px;border-bottom:2px solid var(--bdr)}
+.auth-tab{flex:1;padding:10px;font-size:13px;font-weight:600;color:var(--t3);cursor:pointer;border:none;background:none;border-bottom:2px solid transparent;margin-bottom:-2px;transition:all 140ms}
+.auth-tab.on{color:var(--ind);border-color:var(--ind)}
+.fg{margin-bottom:16px}
+.fl{display:block;font-size:11.5px;font-weight:600;color:var(--t2);margin-bottom:5px;letter-spacing:.02em}
+.fi{width:100%;padding:10px 13px;background:var(--s2);border:1px solid var(--bdr);border-radius:var(--rs);font-size:13px;font-family:var(--font);color:var(--t1);outline:none;transition:all 140ms}
+.fi:focus{background:#fff;border-color:var(--ind);box-shadow:0 0 0 3px rgba(79,70,229,.1)}
+.fi::placeholder{color:var(--t4)}
+.err-msg{background:var(--red-bg);border:1px solid var(--red-bd);color:var(--red);padding:10px 13px;border-radius:var(--rs);font-size:12.5px;margin-bottom:14px}
+.ok-msg{background:var(--grn-bg);border:1px solid var(--grn-bd);color:var(--grn);padding:10px 13px;border-radius:var(--rs);font-size:12.5px;margin-bottom:14px}
+.btn-primary{width:100%;padding:11px;background:var(--ind);border:1px solid var(--ind2);border-radius:var(--rs);font-size:13.5px;font-weight:600;font-family:var(--font);color:#fff;cursor:pointer;transition:all 140ms;margin-top:6px}
+.btn-primary:hover{background:var(--ind2)}
+.btn-primary:disabled{opacity:.6;cursor:not-allowed}
+.app{display:flex;height:100vh;overflow:hidden}
+.sidebar{width:220px;min-width:220px;background:var(--sur);border-right:1px solid var(--bdr);display:flex;flex-direction:column;height:100vh}
+.sb-logo{padding:20px 18px 16px;border-bottom:1px solid var(--bdr)}
+.sb-logo h1{font-size:16px;font-weight:700;color:var(--t1);margin:0 0 3px}
+.sb-logo p{font-size:11px;color:var(--t4);margin:0}
+.sb-user{padding:10px 18px;border-bottom:1px solid var(--bdr);font-size:11px;color:var(--t3)}
+.sb-user strong{display:block;color:var(--t1);font-size:11.5px;margin-top:2px;word-break:break-all}
+.sb-nav{padding:8px;flex:1;display:flex;flex-direction:column;gap:1px}
+.nav-it{display:flex;align-items:center;gap:8px;padding:9px 11px;border-radius:var(--rs);font-size:13px;font-weight:500;color:var(--t3);cursor:pointer;border:none;background:transparent;width:100%;text-align:left;transition:all 140ms}
+.nav-it:hover{background:var(--s2);color:var(--t2)}
+.nav-it.on{background:var(--ind-bg);color:var(--ind);font-weight:600}
+.sb-foot{padding:10px;border-top:1px solid var(--bdr)}
+.logout-btn{width:100%;padding:8px 13px;background:var(--red-bg);border:1px solid var(--red-bd);border-radius:var(--rs);font-size:12.5px;font-weight:600;font-family:var(--font);color:var(--red);cursor:pointer;transition:all 140ms;display:flex;align-items:center;justify-content:center;gap:6px}
+.logout-btn:hover{background:var(--red);color:#fff;border-color:var(--red)}
+.main{flex:1;display:flex;flex-direction:column;overflow:hidden;min-width:0}
+.hdr{background:var(--sur);border-bottom:1px solid var(--bdr);padding:20px 28px 0;flex-shrink:0}
+.hdr-top{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:16px}
+.hdr-title{font-size:20px;font-weight:700;color:var(--t1);letter-spacing:-.4px;margin:0}
+.hdr-sub{font-size:12.5px;color:var(--t3);margin:3px 0 0}
+.add-btn{display:flex;align-items:center;gap:6px;padding:9px 18px;background:var(--ind);border:1px solid var(--ind2);border-radius:var(--rs);font-size:13px;font-weight:600;font-family:var(--font);color:#fff;cursor:pointer;transition:all 140ms}
+.add-btn:hover{background:var(--ind2)}
+.kpi-row{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;padding-bottom:18px}
+.kpi{border-radius:var(--r);padding:14px 16px;cursor:pointer;border:2px solid transparent;transition:all 170ms;position:relative;overflow:hidden}
+.kpi:hover{transform:translateY(-2px);box-shadow:0 4px 12px -2px rgba(0,0,0,.08)}
+.kpi.on{box-shadow:0 8px 24px -4px rgba(0,0,0,.10);transform:translateY(-2px)}
+.kpi.on::after{content:'';position:absolute;bottom:0;left:0;right:0;height:3px;background:currentColor;opacity:.7}
+.kpi-lbl{font-size:10px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;margin-bottom:8px}
+.kpi-num{font-size:26px;font-weight:700;line-height:1;letter-spacing:-.5px}
+.kpi-dsc{font-size:11px;margin-top:7px;opacity:.7}
+.k-red{background:linear-gradient(135deg,#FEF2F2,#FEE2E2);color:#7F1D1D;border-color:#FECACA}.k-red.on{border-color:var(--red)}
+.k-yel{background:linear-gradient(135deg,#FEFCE8,#FEF9C3);color:#713F12;border-color:#FEF08A}.k-yel.on{border-color:var(--yel)}
+.k-pur{background:linear-gradient(135deg,#F5F3FF,#EDE9FE);color:#3B0764;border-color:#DDD6FE}.k-pur.on{border-color:var(--pur)}
+.k-grn{background:linear-gradient(135deg,#ECFDF5,#D1FAE5);color:#064E3B;border-color:#A7F3D0}.k-grn.on{border-color:var(--grn)}
+.toolbar{display:flex;align-items:center;gap:8px;padding:10px 28px;background:rgba(242,243,245,.9);backdrop-filter:blur(8px);border-bottom:1px solid var(--bdr);flex-shrink:0}
+.srch-w{flex:1;position:relative}
+.srch-w svg{position:absolute;left:11px;top:50%;transform:translateY(-50%);color:var(--t4);pointer-events:none}
+.srch-in{width:100%;padding:8px 12px 8px 36px;background:var(--sur);border:1px solid var(--bdr);border-radius:var(--rs);font-size:13px;font-family:var(--font);color:var(--t1);outline:none;transition:all 140ms}
+.srch-in:focus{border-color:var(--ind);box-shadow:0 0 0 3px rgba(79,70,229,.1)}
+.srch-in::placeholder{color:var(--t4)}
+.tb-btn{display:flex;align-items:center;gap:6px;padding:8px 13px;background:var(--sur);border:1px solid var(--bdr);border-radius:var(--rs);font-size:12.5px;font-weight:500;font-family:var(--font);color:var(--t2);cursor:pointer;transition:all 140ms;white-space:nowrap}
+.tb-btn:hover{background:var(--s2)}
+.tb-btn.on{background:var(--ind-bg);border-color:var(--ind-ri);color:var(--ind)}
+.sync-badge{font-size:11px;padding:4px 10px;border-radius:20px;font-weight:600;white-space:nowrap}
+.s-ok{background:var(--grn-bg);color:var(--grn);border:1px solid var(--grn-bd)}
+.s-err{background:var(--red-bg);color:var(--red);border:1px solid var(--red-bd)}
+.s-ing{background:var(--yel-bg);color:var(--yel);border:1px solid var(--yel-bd)}
+.scroll{flex:1;overflow-y:auto;min-height:0}
+.content{padding:20px 28px 48px}
+.sec-hd{font-size:10.5px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--t4);margin:0 0 8px;display:flex;align-items:center;gap:7px}
+.sec-hd em{background:var(--bdr);color:var(--t3);font-size:10px;font-style:normal;padding:1px 7px;border-radius:20px;font-family:var(--mono)}
+.sec-blk{margin-bottom:24px}
+.item-list{display:flex;flex-direction:column;gap:5px}
+.card{background:var(--sur);border:1px solid var(--bdr);border-radius:var(--r);padding:13px 14px;display:flex;align-items:flex-start;gap:11px;transition:all 190ms}
+.card:hover{border-color:var(--bdh);box-shadow:0 4px 12px -2px rgba(0,0,0,.08);transform:translateY(-1px)}
+.card.c-red{border-left:3px solid var(--red)}
+.card.c-yel{border-left:3px solid var(--yel)}
+.card.c-pur{border-left:3px solid var(--pur)}
+.card.c-done{opacity:.55}
+.chk{width:17px;height:17px;min-width:17px;border-radius:4px;border:2px solid var(--bdh);background:transparent;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all 140ms;margin-top:2px;padding:0}
+.chk:hover:not(.done){border-color:var(--grn)}
+.chk.done{background:var(--grn);border-color:var(--grn)}
+.card-body{flex:1;min-width:0}
+.card-name{font-size:13.5px;font-weight:600;color:var(--t1);margin:0 0 6px;line-height:1.35}
+.card-name.done{text-decoration:line-through;color:var(--t4)}
+.meta{display:flex;align-items:center;flex-wrap:wrap;gap:5px}
+.badge{display:inline-flex;align-items:center;gap:4px;padding:3px 9px;border-radius:20px;font-size:11px;font-weight:700}
+.badge::before{content:'';width:5px;height:5px;border-radius:50%;background:currentColor;flex-shrink:0;opacity:.75}
+.b-red{background:var(--red-bg);color:var(--red);border:1px solid var(--red-bd)}
+.b-yel{background:var(--yel-bg);color:var(--yel);border:1px solid var(--yel-bd)}
+.b-pur{background:var(--pur-bg);color:var(--pur);border:1px solid var(--pur-bd)}
+.b-grn{background:var(--grn-bg);color:var(--grn);border:1px solid var(--grn-bd)}
+.tag{background:var(--s2);border:1px solid var(--bdr);color:var(--t3);font-size:11px;font-weight:500;padding:2px 8px;border-radius:20px}
+.amt{font-family:var(--mono);font-size:11.5px;color:var(--t2);background:var(--s2);border:1px solid var(--bdr);padding:2px 8px;border-radius:20px}
+.card-info{margin-top:7px;display:flex;align-items:center;gap:12px;font-size:11.5px;color:var(--t4);flex-wrap:wrap}
+.card-acts{display:flex;gap:1px;opacity:0;transition:opacity 140ms}
+.card:hover .card-acts{opacity:1}
+.ico{width:28px;height:28px;border-radius:var(--rs);border:none;background:transparent;cursor:pointer;display:flex;align-items:center;justify-content:center;color:var(--t4);transition:all 140ms}
+.ico.ed:hover{background:var(--ind-bg);color:var(--ind)}
+.ico.dl:hover{background:var(--red-bg);color:var(--red)}
+.empty{text-align:center;padding:56px 20px;color:var(--t4)}
+.empty p{margin:0;font-size:14px}
+.cal-wrap{background:var(--sur);border:1px solid var(--bdr);border-radius:var(--rl);overflow:hidden}
+.cal-hd{display:flex;align-items:center;justify-content:space-between;padding:16px 20px;border-bottom:1px solid var(--bdr)}
+.cal-title{font-size:14px;font-weight:700;color:var(--t1)}
+.cal-nav{display:flex;gap:5px}
+.cal-nb{padding:5px 13px;background:var(--s2);border:1px solid var(--bdr);border-radius:var(--rs);font-size:12px;font-weight:500;font-family:var(--font);color:var(--t2);cursor:pointer;transition:all 140ms}
+.cal-nb:hover,.cal-nb.td{background:var(--ind-bg);border-color:var(--ind-ri);color:var(--ind)}
+.cal-head-row{display:grid;grid-template-columns:repeat(7,1fr);background:var(--s2);border-bottom:1px solid var(--bdr)}
+.cal-dn{text-align:center;padding:9px 4px;font-size:10.5px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--t4)}
+.cal-grid{display:grid;grid-template-columns:repeat(7,1fr)}
+.cal-cell{min-height:84px;padding:7px;border-right:1px solid var(--bdr);border-bottom:1px solid var(--bdr)}
+.cal-cell:nth-child(7n){border-right:none}
+.cal-cell.omo{background:var(--s2)}
+.cal-cell.ist{background:#FFFDF0}
+.cal-dn2{font-size:11.5px;font-weight:600;color:var(--t3);margin-bottom:5px;display:inline-flex;align-items:center;justify-content:center;width:21px;height:21px;border-radius:50%}
+.cal-cell.omo .cal-dn2{color:var(--t4);opacity:.4}
+.cal-cell.ist .cal-dn2{background:var(--ind);color:#fff}
+.cal-pill{font-size:10px;font-weight:600;padding:2px 6px;border-radius:4px;margin-bottom:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%;display:block;line-height:1.4}
+.cp-red{background:var(--red-bg);color:var(--red)}
+.cp-yel{background:var(--yel-bg);color:var(--yel)}
+.cp-pur{background:var(--pur-bg);color:var(--pur)}
+.cal-more{font-size:9.5px;color:var(--t4)}
+.overlay{position:fixed;inset:0;background:rgba(0,0,0,.38);backdrop-filter:blur(4px);z-index:100;display:flex;align-items:center;justify-content:center;padding:16px}
+.modal{background:var(--sur);border-radius:var(--rxl);box-shadow:0 20px 40px -8px rgba(0,0,0,.14);width:100%;max-width:480px;max-height:90vh;overflow-y:auto}
+.mhd{display:flex;align-items:center;justify-content:space-between;padding:18px 22px 16px;border-bottom:1px solid var(--bdr);position:sticky;top:0;background:var(--sur);z-index:1;border-radius:var(--rxl) var(--rxl) 0 0}
+.mhd h2{font-size:15px;font-weight:700;color:var(--t1);margin:0}
+.mclose{width:30px;height:30px;border-radius:var(--rs);border:1px solid var(--bdr);background:var(--s2);cursor:pointer;display:flex;align-items:center;justify-content:center;color:var(--t3);transition:all 140ms}
+.mclose:hover{background:var(--red-bg);border-color:var(--red-bd);color:var(--red)}
+.mbd{padding:20px 22px}
+.fr{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px}
+.fg2{margin-bottom:14px}
+.amt-row{display:flex;gap:6px}
+.amt-cur{width:96px;flex-shrink:0}
+.amt-num{flex:1;min-width:0}
+.mfoot{display:flex;gap:9px;padding-top:16px;border-top:1px solid var(--bdr);margin-top:18px}
+.btn-p{flex:1;padding:10px;background:var(--ind);border:1px solid var(--ind2);border-radius:var(--rs);font-size:13.5px;font-weight:600;font-family:var(--font);color:#fff;cursor:pointer;transition:all 140ms}
+.btn-p:hover{background:var(--ind2)}
+.btn-s{flex:1;padding:10px;background:var(--s2);border:1px solid var(--bdr);border-radius:var(--rs);font-size:13.5px;font-weight:600;font-family:var(--font);color:var(--t2);cursor:pointer;transition:all 140ms}
+.btn-s:hover{background:var(--bdr)}
+</style>
 </head>
 <body>
 <div id="root"></div>
 <script type="text/babel">
-const { useState, useEffect, useMemo, useCallback } = React;
+const { useState, useEffect, useMemo } = React;
 
-/* ─── Supabase ─── */
 const SB_URL = 'https://hnlrmhxaprhembagiivm.supabase.co';
 const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhubHJtaHhhcHJoZW1iYWdpaXZtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODAwMDUzMzUsImV4cCI6MjA5NTU4MTMzNX0.0IWUR3UxenPeIzDKdMuUuDVxIwxUeyvRq8OsmvVUltk';
+const DEFAULT_USER = '44c7c457-e37e-4f0e-9be6-0616883b80d0';
 const sb = window.supabase.createClient(SB_URL, SB_KEY);
 
-/* ─── Helpers ─── */
-const uid    = () => crypto.randomUUID ? crypto.randomUUID() : Math.random().toString(36).slice(2)+Date.now();
 const todDS  = () => new Date().toISOString().split('T')[0];
-const daysUntil = ds => {
-  const t = new Date(); t.setHours(0,0,0,0);
-  return Math.floor((new Date(ds+'T00:00:00') - t) / 86400000);
+const daysUntil = ds => { const t=new Date();t.setHours(0,0,0,0); return Math.floor((new Date(ds+'T00:00:00')-t)/86400000); };
+const fmtDate = ds => { if(!ds) return '—'; try{return new Date(ds+'T00:00:00').toLocaleDateString('en-GB',{weekday:'short',day:'numeric',month:'short',year:'numeric'});}catch{return ds;} };
+const getStatus = (ds,done) => {
+  if(done) return {label:'Done',badge:'b-grn',card:'c-done',cal:'cp-pur'};
+  const d=daysUntil(ds);
+  if(d<0)  return {label:'Overdue',  badge:'b-red',card:'c-red',cal:'cp-red'};
+  if(d===0) return {label:'Today',   badge:'b-red',card:'c-red',cal:'cp-red'};
+  if(d<=7)  return {label:d+'d',    badge:'b-yel',card:'c-yel',cal:'cp-yel'};
+  return           {label:d+'d',    badge:'b-pur',card:'c-pur',cal:'cp-pur'};
 };
-const fmtDate = ds => {
-  if (!ds) return '';
-  try { return new Date(ds+'T00:00:00').toLocaleDateString('en-GB',{weekday:'short',day:'numeric',month:'short',year:'numeric'}); }
-  catch { return ds; }
-};
-const getStatus = (ds, done) => {
-  if (done) return {label:'Done',badge:'b-grn',card:'c-done',cal:'cp-pur'};
-  const d = daysUntil(ds);
-  if (d < 0)  return {label:'Overdue',   badge:'b-red',card:'c-red',cal:'cp-red'};
-  if (d === 0) return {label:'Today',    badge:'b-red',card:'c-red',cal:'cp-red'};
-  if (d <= 7)  return {label:`${d}d`,   badge:'b-yel',card:'c-yel',cal:'cp-yel'};
-  return              {label:`${d}d`,   badge:'b-pur',card:'c-pur',cal:'cp-pur'};
-};
-const CURRENCIES = [
-  {code:'HKD',sym:'HK$'},{code:'GBP',sym:'£'},{code:'USD',sym:'$'},
-  {code:'EUR',sym:'€'},{code:'THB',sym:'฿'},{code:'SGD',sym:'S$'},
-  {code:'JPY',sym:'¥'},{code:'AUD',sym:'A$'},
-];
+const CURRENCIES=[{code:'HKD',sym:'HK$'},{code:'GBP',sym:'£'},{code:'USD',sym:'$'},{code:'EUR',sym:'€'},{code:'THB',sym:'฿'},{code:'SGD',sym:'S$'},{code:'JPY',sym:'¥'},{code:'AUD',sym:'A$'}];
 const getCur = c => CURRENCIES.find(x=>x.code===c)||CURRENCIES[0];
-const COUNTRIES = ['Hong Kong','UK','Thailand','Singapore','Other'];
-const RTYPES    = ['One-off','Monthly','Annual'];
+const COUNTRIES=['Hong Kong','UK','Thailand','Singapore','Other'];
+const RTYPES=['One-off','Monthly','Annual'];
 const pad = n => String(n).padStart(2,'0');
 
-/* ─── Icons ─── */
+// SVG Icons
 const IC = {
   plus: <svg width="15" height="15" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>,
   x:    <svg width="13" height="13" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24"><path d="M18 6 6 18M6 6l12 12"/></svg>,
   chk:  <svg width="10" height="10" fill="currentColor" viewBox="0 0 24 24"><path d="M9 16.17 4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>,
   edit: <svg width="13" height="13" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path d="M11 5H6a2 2 0 0 0-2 2v11a2 2 0 0 0 2 2h11a2 2 0 0 0 2-2v-5m-1.414-9.414a2 2 0 1 1 2.828 2.828L11.828 15H9v-2.828z"/></svg>,
   del:  <svg width="13" height="13" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path d="M19 7l-.867 12.142A2 2 0 0 1 16.138 21H7.862a2 2 0 0 1-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v3M4 7h16"/></svg>,
-  srch: <svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path d="M21 21l-6-6m2-5a7 7 0 1 1-14 0 7 7 0 0 1 14 0z"/></svg>,
   cal:  <svg width="13" height="13" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2z"/></svg>,
   out:  <svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 0 1-3 3H6a3 3 0 0 1-3-3V7a3 3 0 0 1 3-3h4a3 3 0 0 1 3 3v1"/></svg>,
+  srch: <svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path d="M21 21l-6-6m2-5a7 7 0 1 1-14 0 7 7 0 0 1 14 0z"/></svg>,
 };
 
-/* ─── Auth Screen ─── */
-function AuthScreen({ onAuth }) {
-  const [tab, setTab] = useState('login');
-  const [email, setEmail] = useState('');
-  const [pw, setPw] = useState('');
-  const [pw2, setPw2] = useState('');
-  const [busy, setBusy] = useState(false);
-  const [err, setErr] = useState('');
-  const [ok, setOk] = useState('');
-
+function AuthScreen({onAuth}) {
+  const [tab,setTab]=useState('login');
+  const [email,setEmail]=useState('');
+  const [pw,setPw]=useState('');
+  const [pw2,setPw2]=useState('');
+  const [busy,setBusy]=useState(false);
+  const [err,setErr]=useState('');
+  const [ok,setOk]=useState('');
   const submit = async e => {
-    e.preventDefault();
-    setErr(''); setOk(''); setBusy(true);
+    e.preventDefault(); setErr(''); setOk(''); setBusy(true);
     try {
-      if (tab === 'login') {
-        const { data, error } = await sb.auth.signInWithPassword({ email, password: pw });
-        if (error) throw error;
+      if(tab==='login') {
+        const {data,error}=await sb.auth.signInWithPassword({email,password:pw});
+        if(error) throw error;
         onAuth(data.user);
       } else {
-        if (pw !== pw2) throw new Error('Passwords do not match');
-        if (pw.length < 6) throw new Error('Password must be at least 6 characters');
-        const { error } = await sb.auth.signUp({ email, password: pw });
-        if (error) throw error;
+        if(pw!==pw2) throw new Error('Passwords do not match');
+        if(pw.length<6) throw new Error('Password must be at least 6 characters');
+        const {error}=await sb.auth.signUp({email,password:pw});
+        if(error) throw error;
         setOk('Account created! Check your email to confirm, then log in.');
         setTab('login');
       }
-    } catch(e) { setErr(e.message); }
-    finally { setBusy(false); }
+    } catch(e) { setErr(e.message); } finally { setBusy(false); }
   };
-
   return (
     <div className="auth-wrap">
       <div className="auth-card">
-        <div className="auth-logo">
-          <h1>Life Admin</h1>
-          <p>Personal Task Management</p>
-        </div>
+        <div className="auth-logo"><h1>Life Admin</h1><p>Personal Task Management</p></div>
         <div className="auth-tabs">
           <button className={`auth-tab${tab==='login'?' on':''}`} onClick={()=>{setTab('login');setErr('');setOk('')}}>Log In</button>
           <button className={`auth-tab${tab==='signup'?' on':''}`} onClick={()=>{setTab('signup');setErr('');setOk('')}}>Sign Up</button>
@@ -286,351 +241,256 @@ function AuthScreen({ onAuth }) {
         {err && <div className="err-msg">{err}</div>}
         {ok  && <div className="ok-msg">{ok}</div>}
         <form onSubmit={submit}>
-          <div className="fg"><label className="fl">Email</label>
-            <input className="fi" type="email" value={email} onChange={e=>setEmail(e.target.value)} placeholder="you@example.com" required autoFocus/>
-          </div>
-          <div className="fg"><label className="fl">Password</label>
-            <input className="fi" type="password" value={pw} onChange={e=>setPw(e.target.value)} placeholder="••••••••" required/>
-          </div>
-          {tab==='signup' && <div className="fg"><label className="fl">Confirm Password</label>
-            <input className="fi" type="password" value={pw2} onChange={e=>setPw2(e.target.value)} placeholder="••••••••" required/>
-          </div>}
-          <button className="btn-primary" type="submit" disabled={busy}>
-            {busy ? 'Please wait…' : tab==='login' ? 'Log In' : 'Create Account'}
-          </button>
+          <div className="fg"><label className="fl">Email</label><input className="fi" type="email" value={email} onChange={e=>setEmail(e.target.value)} placeholder="you@example.com" required autoFocus/></div>
+          <div className="fg"><label className="fl">Password</label><input className="fi" type="password" value={pw} onChange={e=>setPw(e.target.value)} placeholder="••••••••" required/></div>
+          {tab==='signup' && <div className="fg"><label className="fl">Confirm Password</label><input className="fi" type="password" value={pw2} onChange={e=>setPw2(e.target.value)} placeholder="••••••••" required/></div>}
+          <button className="btn-primary" type="submit" disabled={busy}>{busy?'Please wait…':tab==='login'?'Log In':'Create Account'}</button>
         </form>
       </div>
     </div>
   );
 }
 
-/* ─── Item Form ─── */
-function ItemForm({ item, onSave, onCancel }) {
-  const blank = { item_name:'', category:'', country:'Hong Kong', supplier:'', date:'', renewal_type:'One-off', currency:'HKD', amount:'', notes:'' };
-  const [f, setF] = useState(item ? { ...blank, ...item } : blank);
-  const u = k => e => setF(p=>({...p,[k]:e.target.value}));
-  const submit = e => {
-    e.preventDefault();
-    if (!f.item_name.trim()) return alert('Item Name is required');
-    if (!f.date)             return alert('Date is required');
-    onSave(f);
-  };
+function ItemForm({item,onSave,onCancel}) {
+  const blank={item_name:'',category:'',country:'Hong Kong',supplier:'',date:'',renewal_type:'One-off',currency:'HKD',amount:'',notes:''};
+  const [f,setF]=useState(item?{...blank,...item}:blank);
+  const u=k=>e=>setF(p=>(({...p,[k]:e.target.value})));
+  const submit=e=>{ e.preventDefault(); if(!f.item_name.trim()) return alert('Item Name is required'); if(!f.date) return alert('Date is required'); onSave(f); };
   return (
     <form onSubmit={submit}>
-      <div className="fg2"><label className="fl">Item Name *</label>
-        <input className="fi" value={f.item_name} onChange={u('item_name')} placeholder="e.g. Car Insurance Renewal" autoFocus/>
+      <div className="fg2"><label className="fl">Item Name *</label><input className="fi" value={f.item_name} onChange={u('item_name')} placeholder="e.g. Car Insurance Renewal" autoFocus/></div>
+      <div className="fr">
+        <div><label className="fl">Category</label><input className="fi" value={f.category} onChange={u('category')} placeholder="e.g. Insurance"/></div>
+        <div><label className="fl">Date *</label><input className="fi" type="date" value={f.date} onChange={u('date')}/></div>
       </div>
       <div className="fr">
-        <div><label className="fl">Category</label>
-          <input className="fi" value={f.category} onChange={u('category')} placeholder="e.g. Insurance"/>
-        </div>
-        <div><label className="fl">Date *</label>
-          <input className="fi" type="date" value={f.date} onChange={u('date')}/>
-        </div>
+        <div><label className="fl">Country</label><select className="fi" value={f.country} onChange={u('country')}>{COUNTRIES.map(c=><option key={c}>{c}</option>)}</select></div>
+        <div><label className="fl">Type</label><select className="fi" value={f.renewal_type} onChange={u('renewal_type')}>{RTYPES.map(t=><option key={t}>{t}</option>)}</select></div>
       </div>
       <div className="fr">
-        <div><label className="fl">Country</label>
-          <select className="fi" value={f.country} onChange={u('country')}>
-            {COUNTRIES.map(c=><option key={c}>{c}</option>)}
-          </select>
-        </div>
-        <div><label className="fl">Type</label>
-          <select className="fi" value={f.renewal_type} onChange={u('renewal_type')}>
-            {RTYPES.map(t=><option key={t}>{t}</option>)}
-          </select>
-        </div>
-      </div>
-      <div className="fr">
-        <div><label className="fl">Supplier</label>
-          <input className="fi" value={f.supplier} onChange={u('supplier')} placeholder="Optional"/>
-        </div>
+        <div><label className="fl">Supplier</label><input className="fi" value={f.supplier} onChange={u('supplier')} placeholder="Optional"/></div>
         <div><label className="fl">Amount</label>
           <div className="amt-row">
-            <select className="fi amt-cur" value={f.currency} onChange={u('currency')}>
-              {CURRENCIES.map(c=><option key={c.code} value={c.code}>{c.sym} {c.code}</option>)}
-            </select>
+            <select className="fi amt-cur" value={f.currency} onChange={u('currency')}>{CURRENCIES.map(c=><option key={c.code} value={c.code}>{c.sym} {c.code}</option>)}</select>
             <input className="fi amt-num" type="number" value={f.amount} onChange={u('amount')} placeholder="0.00" min="0" step="0.01"/>
           </div>
         </div>
       </div>
-      <div className="fg2"><label className="fl">Notes</label>
-        <textarea className="fi" rows="2" value={f.notes} onChange={u('notes')} placeholder="Any extra context…"/>
-      </div>
+      <div className="fg2"><label className="fl">Notes</label><textarea className="fi" rows="2" value={f.notes} onChange={u('notes')} placeholder="Any extra context…"/></div>
       <div className="mfoot">
-        <button type="submit" className="btn-p">{item ? 'Update' : 'Add Item'}</button>
+        <button type="submit" className="btn-p">{item?'Update':'Add Item'}</button>
         <button type="button" className="btn-s" onClick={onCancel}>Cancel</button>
       </div>
     </form>
   );
 }
 
-/* ─── Modal ─── */
-function Modal({ open, onClose, title, children }) {
-  useEffect(()=>{ const h=e=>e.key==='Escape'&&onClose(); window.addEventListener('keydown',h); return()=>window.removeEventListener('keydown',h); },[onClose]);
-  if (!open) return null;
-  return (
-    <div className="overlay" onClick={e=>e.target===e.currentTarget&&onClose()}>
-      <div className="modal">
-        <div className="mhd"><h2>{title}</h2><button className="mclose" onClick={onClose}>{IC.x}</button></div>
-        <div className="mbd">{children}</div>
-      </div>
-    </div>
-  );
+function Modal({open,onClose,title,children}) {
+  useEffect(()=>{const h=e=>e.key==='Escape'&&onClose();window.addEventListener('keydown',h);return()=>window.removeEventListener('keydown',h);},[onClose]);
+  if(!open) return null;
+  return <div className="overlay" onClick={e=>e.target===e.currentTarget&&onClose()}><div className="modal"><div className="mhd"><h2>{title}</h2><button className="mclose" onClick={onClose}>{IC.x}</button></div><div className="mbd">{children}</div></div></div>;
 }
 
-/* ─── Task Card ─── */
-function TaskCard({ item, onEdit, onDelete, onToggle }) {
-  const st = getStatus(item.date, item.completed);
-  const cur = getCur(item.currency);
+function TaskCard({item,onEdit,onDelete,onToggle}) {
+  const st=getStatus(item.date,item.completed);
+  const cur=getCur(item.currency);
   return (
     <div className={`card ${st.card}`}>
-      <button className={`chk${item.completed?' done':''}`} onClick={()=>onToggle(item.id)}>
-        {item.completed && IC.chk}
-      </button>
+      <button className={`chk${item.completed?' done':''}`} onClick={()=>onToggle(item.id)}>{item.completed&&IC.chk}</button>
       <div className="card-body">
         <div className={`card-name${item.completed?' done':''}`}>{item.item_name}</div>
         <div className="meta">
           <span className={`badge ${st.badge}`}>{st.label}</span>
-          {item.category && <span className="tag">{item.category}</span>}
-          {item.country  && <span className="tag">{item.country}</span>}
-          {item.amount   && <span className="amt">{cur.sym}{parseFloat(item.amount).toLocaleString()}</span>}
-          {item.renewal_type && item.renewal_type!=='One-off' && <span className="tag" style={{fontFamily:'var(--mono)',fontSize:'10.5px'}}>{item.renewal_type}</span>}
+          {item.category&&<span className="tag">{item.category}</span>}
+          {item.country&&<span className="tag">{item.country}</span>}
+          {item.amount&&<span className="amt">{cur.sym}{parseFloat(item.amount).toLocaleString()}</span>}
+          {item.renewal_type&&item.renewal_type!=='One-off'&&<span className="tag" style={{fontFamily:'var(--mono)',fontSize:'10.5px'}}>{item.renewal_type}</span>}
         </div>
-        <div className="card-info">
-          {IC.cal}<span>{fmtDate(item.date)}</span>
-          {item.supplier && <><span>·</span><span>{item.supplier}</span></>}
-          {item.notes    && <><span>·</span><em style={{fontStyle:'normal'}}>{item.notes}</em></>}
-        </div>
+        <div className="card-info">{IC.cal}<span>{fmtDate(item.date)}</span>{item.supplier&&<><span>·</span><span>{item.supplier}</span></>}{item.notes&&<><span>·</span><span>{item.notes}</span></>}</div>
       </div>
-      <div className="card-acts">
-        <button className="ico ed" onClick={()=>onEdit(item)}>{IC.edit}</button>
-        <button className="ico dl" onClick={()=>onDelete(item.id)}>{IC.del}</button>
-      </div>
+      <div className="card-acts"><button className="ico ed" onClick={()=>onEdit(item)}>{IC.edit}</button><button className="ico dl" onClick={()=>onDelete(item.id)}>{IC.del}</button></div>
     </div>
   );
 }
 
-/* ─── Calendar ─── */
-function CalView({ items }) {
-  const [cur, setCur] = useState(()=>{ const n=new Date(); return {y:n.getFullYear(),m:n.getMonth()}; });
-  const nav = d => setCur(p=>{ let m=p.m+d,y=p.y; if(m<0){m=11;y--} if(m>11){m=0;y++} return{y,m}; });
-  const today = todDS();
-  const title = new Date(cur.y,cur.m,1).toLocaleDateString('en-GB',{month:'long',year:'numeric'});
-  const fd=new Date(cur.y,cur.m,1).getDay(), dm=new Date(cur.y,cur.m+1,0).getDate(), dp=new Date(cur.y,cur.m,0).getDate();
+function CalView({items}) {
+  const [cur,setCur]=useState(()=>{const n=new Date();return{y:n.getFullYear(),m:n.getMonth()}});
+  const nav=d=>setCur(p=>{let m=p.m+d,y=p.y;if(m<0){m=11;y--}if(m>11){m=0;y++}return{y,m}});
+  const today=todDS();
+  const title=new Date(cur.y,cur.m,1).toLocaleDateString('en-GB',{month:'long',year:'numeric'});
+  const fd=new Date(cur.y,cur.m,1).getDay(),dm=new Date(cur.y,cur.m+1,0).getDate(),dp=new Date(cur.y,cur.m,0).getDate();
   const cells=[];
   for(let i=fd-1;i>=0;i--) cells.push({day:dp-i,cur:false});
   for(let d=1;d<=dm;d++) cells.push({day:d,cur:true});
   while(cells.length%7!==0) cells.push({day:cells.length-dm-fd+1,cur:false});
   return (
     <div className="cal-wrap">
-      <div className="cal-hd">
-        <span className="cal-title">{title}</span>
-        <div className="cal-nav">
-          <button className="cal-nb td" onClick={()=>setCur(()=>{ const n=new Date(); return{y:n.getFullYear(),m:n.getMonth()}; })}>Today</button>
-          <button className="cal-nb" onClick={()=>nav(-1)}>← Prev</button>
-          <button className="cal-nb" onClick={()=>nav(1)}>Next →</button>
-        </div>
-      </div>
+      <div className="cal-hd"><span className="cal-title">{title}</span><div className="cal-nav"><button className="cal-nb td" onClick={()=>setCur(()=>{const n=new Date();return{y:n.getFullYear(),m:n.getMonth()}})}>Today</button><button className="cal-nb" onClick={()=>nav(-1)}>← Prev</button><button className="cal-nb" onClick={()=>nav(1)}>Next →</button></div></div>
       <div className="cal-head-row">{['Sun','Mon','Tue','Wed','Thu','Fri','Sat'].map(n=><div key={n} className="cal-dn">{n}</div>)}</div>
       <div className="cal-grid">
         {cells.map((cell,i)=>{
           const ds=cell.cur?`${cur.y}-${pad(cur.m+1)}-${pad(cell.day)}`:null;
           const list=cell.cur?items.filter(it=>it.date===ds&&!it.completed):[];
           const isT=ds===today;
-          return (
-            <div key={i} className={`cal-cell${!cell.cur?' omo':''}${isT?' ist':''}`}>
-              <span className="cal-dn2">{cell.day}</span>
-              {list.slice(0,3).map(it=>{ const s=getStatus(it.date,false); return <span key={it.id} className={`cal-pill ${s.cal}`} title={it.item_name}>{it.item_name}</span>; })}
-              {list.length>3 && <span className="cal-more">+{list.length-3} more</span>}
-            </div>
-          );
+          return <div key={i} className={`cal-cell${!cell.cur?' omo':''}${isT?' ist':''}`}><span className="cal-dn2">{cell.day}</span>{list.slice(0,3).map(it=>{const s=getStatus(it.date,false);return <span key={it.id} className={`cal-pill ${s.cal}`} title={it.item_name}>{it.item_name}</span>;})}{list.length>3&&<span className="cal-more">+{list.length-3} more</span>}</div>;
         })}
       </div>
     </div>
   );
 }
 
-/* ─── Main App ─── */
 function App() {
-  const [user,    setUser]    = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [items,   setItems]   = useState([]);
-  const [sync,    setSync]    = useState('idle'); // idle | syncing | ok | err
-  const [syncMsg, setSyncMsg] = useState('');
-  const [view,    setView]    = useState('dashboard');
-  const [modal,   setModal]   = useState(null);
-  const [editItem,setEditItem]= useState(null);
-  const [kpi,     setKpi]     = useState('all');
-  const [search,  setSearch]  = useState('');
+  const [user,setUser]=useState(null);
+  const [loading,setLoading]=useState(true);
+  const [items,setItems]=useState([]);
+  const [sync,setSync]=useState('idle');
+  const [syncMsg,setSyncMsg]=useState('');
+  const [view,setView]=useState('dashboard');
+  const [modal,setModal]=useState(null);
+  const [editItem,setEditItem]=useState(null);
+  const [kpi,setKpi]=useState('all');
+  const [search,setSearch]=useState('');
 
-  /* ── Auth check ── */
   useEffect(()=>{
     sb.auth.getSession().then(({data:{session}})=>{
-      if (session?.user) { setUser(session.user); loadItems(session.user); }
+      if(session?.user){setUser(session.user);loadItems();}
       else setLoading(false);
     });
-    const {data:{subscription}} = sb.auth.onAuthStateChange((ev,session)=>{
-      if (session?.user) { setUser(session.user); loadItems(session.user); }
-      else { setUser(null); setItems([]); setLoading(false); }
+    const {data:{subscription}}=sb.auth.onAuthStateChange((ev,session)=>{
+      if(session?.user){setUser(session.user);loadItems();}
+      else{setUser(null);setItems([]);setLoading(false);}
     });
-    return ()=>subscription?.unsubscribe();
+    return()=>subscription?.unsubscribe();
   },[]);
 
-  /* ── Load items - NO user_id filter, works with any schema ── */
-  const loadItems = async (u) => {
+  const loadItems=async()=>{
     setSync('syncing');
-    try {
-      const { data, error } = await sb.from('items').select('*').order('date', {ascending:true, nullsFirst:false});
-      if (error) throw error;
-      setItems(data || []);
-      setSync('ok');
-      setSyncMsg(`${(data||[]).length} items loaded`);
-    } catch(e) {
-      console.error('Load error:', e);
-      setSync('err');
-      setSyncMsg(e.message);
-    } finally {
-      setLoading(false);
-    }
+    try{
+      const {data,error}=await sb.from('items').select('*').order('date',{ascending:true,nullsFirst:false});
+      if(error) throw error;
+      setItems(data||[]);
+      setSync('ok');setSyncMsg(`${(data||[]).length} items loaded`);
+    }catch(e){
+      setSync('err');setSyncMsg(e.message);
+      console.error('Load error:',e);
+    }finally{setLoading(false);}
   };
 
-  const handleLogout = async () => { await sb.auth.signOut(); };
+  const handleLogout=async()=>{await sb.auth.signOut();};
 
-  /* ── Save item ── */
-  const handleSave = async f => {
+  // INSERT - NEVER send id (it's bigint auto-increment)
+  const handleSave=async f=>{
     setSync('syncing');
-    try {
-      if (editItem) {
-        // UPDATE - only send columns that exist, exclude user_id if not in schema
-        const payload = {
-          item_name:    f.item_name,
-          category:     f.category,
-          country:      f.country,
-          supplier:     f.supplier,
-          date:         f.date,
-          renewal_type: f.renewal_type,
-          currency:     f.currency,
-          amount:       f.amount || null,
-          notes:        f.notes  || null,
+    try{
+      if(editItem){
+        const payload={
+          item_name:f.item_name, category:f.category, country:f.country,
+          supplier:f.supplier||null, date:f.date||null, renewal_type:f.renewal_type,
+          currency:f.currency, amount:f.amount||null, notes:f.notes||null,
         };
-        const { error } = await sb.from('items').update(payload).eq('id', editItem.id);
-        if (error) throw error;
-        setItems(p => p.map(i => i.id===editItem.id ? {...i,...payload} : i));
-      } else {
-        // INSERT
-        const newItem = {
-          item_name:    f.item_name,
-          category:     f.category,
-          country:      f.country,
-          supplier:     f.supplier,
-          date:         f.date,
-          renewal_type: f.renewal_type,
-          currency:     f.currency,
-          amount:       f.amount || null,
-          notes:        f.notes  || null,
-          completed:    false,
-          user_id:      '44c7c457-e37e-4f0e-9be6-0616883b80d0',
+        const {error}=await sb.from('items').update(payload).eq('id',editItem.id);
+        if(error) throw error;
+        setItems(p=>p.map(i=>i.id===editItem.id?{...i,...payload}:i));
+      }else{
+        // DO NOT include id — Supabase auto-assigns bigint
+        const newItem={
+          item_name:f.item_name, category:f.category, country:f.country,
+          supplier:f.supplier||null, date:f.date||null, renewal_type:f.renewal_type,
+          currency:f.currency, amount:f.amount||null, notes:f.notes||null,
+          completed:false, user_id:user?.id||DEFAULT_USER,
         };
-        const { error } = await sb.from('items').insert([newItem]);
-        if (error) throw error;
-        setItems(p => [...p, newItem]);
+        const {data,error}=await sb.from('items').insert([newItem]).select();
+        if(error) throw error;
+        if(data&&data[0]) setItems(p=>[...p,data[0]]);
       }
-      setSync('ok'); setSyncMsg('Saved ✓');
+      setSync('ok');setSyncMsg('Saved ✓');
       closeModal();
-    } catch(e) {
-      setSync('err'); setSyncMsg(e.message);
-      alert('Error saving: ' + e.message);
+    }catch(e){
+      setSync('err');setSyncMsg(e.message);
+      alert('Error saving: '+e.message);
     }
   };
 
-  /* ── Delete ── */
-  const handleDelete = async id => {
-    if (!confirm('Delete this item?')) return;
+  const handleDelete=async id=>{
+    if(!confirm('Delete this item?')) return;
     setSync('syncing');
-    try {
-      const { error } = await sb.from('items').delete().eq('id', id);
-      if (error) throw error;
-      setItems(p => p.filter(i => i.id!==id));
-      setSync('ok'); setSyncMsg('Deleted ✓');
-    } catch(e) { setSync('err'); setSyncMsg(e.message); alert('Error: '+e.message); }
+    try{
+      const {error}=await sb.from('items').delete().eq('id',id);
+      if(error) throw error;
+      setItems(p=>p.filter(i=>i.id!==id));
+      setSync('ok');setSyncMsg('Deleted ✓');
+    }catch(e){setSync('err');setSyncMsg(e.message);alert('Error: '+e.message);}
   };
 
-  /* ── Toggle complete ── */
-  const handleToggle = async id => {
-    const item = items.find(i=>i.id===id);
-    const newVal = !item.completed;
+  const handleToggle=async id=>{
+    const item=items.find(i=>i.id===id);
+    const val=!item.completed;
     setSync('syncing');
-    try {
-      const { error } = await sb.from('items').update({ completed: newVal }).eq('id', id);
-      if (error) throw error;
-      setItems(p => p.map(i => i.id===id ? {...i,completed:newVal} : i));
-      setSync('ok'); setSyncMsg('Updated ✓');
-    } catch(e) { setSync('err'); setSyncMsg(e.message); alert('Error: '+e.message); }
+    try{
+      const {error}=await sb.from('items').update({completed:val}).eq('id',id);
+      if(error) throw error;
+      setItems(p=>p.map(i=>i.id===id?{...i,completed:val}:i));
+      setSync('ok');setSyncMsg('Updated ✓');
+    }catch(e){setSync('err');setSyncMsg(e.message);alert('Error: '+e.message);}
   };
 
-  const closeModal = () => { setModal(null); setEditItem(null); };
-  const openEdit   = it  => { setEditItem(it); setModal('form'); };
-  const openAdd    = ()  => { setEditItem(null); setModal('form'); };
+  const closeModal=()=>{setModal(null);setEditItem(null);};
+  const openEdit=it=>{setEditItem(it);setModal('form');};
+  const openAdd=()=>{setEditItem(null);setModal('form');};
 
-  /* ── Stats ── */
-  const pending   = useMemo(()=>items.filter(i=>!i.completed).sort((a,b)=>(a.date||'').localeCompare(b.date||'')), [items]);
-  const completed = useMemo(()=>items.filter(i=>i.completed),  [items]);
-
-  const stats = useMemo(()=>{
-    const now=new Date(); now.setHours(0,0,0,0);
-    const e90=new Date(now.getTime()+90*86400000);
+  const pending=useMemo(()=>items.filter(i=>!i.completed).sort((a,b)=>((a.date||'zzz').localeCompare(b.date||'zzz'))),[items]);
+  const completed=useMemo(()=>items.filter(i=>i.completed),[items]);
+  const stats=useMemo(()=>{
+    const now=new Date();now.setHours(0,0,0,0);
     const nm=new Date(now.getFullYear(),now.getMonth()+1,0);
-    return {
-      today: pending.filter(i=>daysUntil(i.date)<=0).length,
-      month: pending.filter(i=>{ const d=new Date((i.date||'')+'T00:00:00'); return d>=now&&d<=nm; }).length,
-      d90:   pending.filter(i=>{ const d=new Date((i.date||'')+'T00:00:00'); return d>=now&&d<=e90; }).length,
-      done:  completed.length,
+    const e90=new Date(now.getTime()+90*86400000);
+    return{
+      today:pending.filter(i=>i.date&&daysUntil(i.date)<=0).length,
+      month:pending.filter(i=>{if(!i.date)return false;const d=new Date(i.date+'T00:00:00');return d>=now&&d<=nm;}).length,
+      d90:pending.filter(i=>{if(!i.date)return false;const d=new Date(i.date+'T00:00:00');return d>=now&&d<=e90;}).length,
+      done:completed.length,
     };
   },[pending,completed]);
 
-  /* ── Filtered list ── */
-  const filtered = useMemo(()=>{
-    let list = kpi==='done' ? completed : pending;
-    if (kpi==='today') list = list.filter(i=>daysUntil(i.date)<=0);
-    if (kpi==='month') { const now=new Date();now.setHours(0,0,0,0);const nm=new Date(now.getFullYear(),now.getMonth()+1,0); list=list.filter(i=>{const d=new Date((i.date||'')+'T00:00:00');return d>=now&&d<=nm;}); }
-    if (kpi==='90d')   { const now=new Date();now.setHours(0,0,0,0);const e=new Date(now.getTime()+90*86400000); list=list.filter(i=>{const d=new Date((i.date||'')+'T00:00:00');return d>=now&&d<=e;}); }
-    if (search.trim()) { const q=search.toLowerCase(); list=list.filter(i=>(i.item_name||'').toLowerCase().includes(q)||(i.category||'').toLowerCase().includes(q)||(i.supplier||'').toLowerCase().includes(q)); }
+  const filtered=useMemo(()=>{
+    let list=kpi==='done'?completed:pending;
+    const now=new Date();now.setHours(0,0,0,0);
+    const nm=new Date(now.getFullYear(),now.getMonth()+1,0);
+    const e90=new Date(now.getTime()+90*86400000);
+    if(kpi==='today') list=list.filter(i=>i.date&&daysUntil(i.date)<=0);
+    if(kpi==='month') list=list.filter(i=>{if(!i.date)return false;const d=new Date(i.date+'T00:00:00');return d>=now&&d<=nm;});
+    if(kpi==='90d')   list=list.filter(i=>{if(!i.date)return false;const d=new Date(i.date+'T00:00:00');return d>=now&&d<=e90;});
+    if(search.trim()){const q=search.toLowerCase();list=list.filter(i=>(i.item_name||'').toLowerCase().includes(q)||(i.category||'').toLowerCase().includes(q)||(i.supplier||'').toLowerCase().includes(q));}
     return list;
   },[pending,completed,kpi,search]);
 
-  /* ── Grouped (default view) ── */
-  const grouped = useMemo(()=>{
-    if (kpi!=='all'||search.trim()) return null;
+  const grouped=useMemo(()=>{
+    if(kpi!=='all'||search.trim()) return null;
     const now=new Date();now.setHours(0,0,0,0);
     const e7=new Date(now.getTime()+7*86400000);
     const nm=new Date(now.getFullYear(),now.getMonth()+1,0);
     const e90=new Date(now.getTime()+90*86400000);
-    return {
-      overdue: pending.filter(i=>daysUntil(i.date)<0),
-      today:   pending.filter(i=>daysUntil(i.date)===0),
-      week:    pending.filter(i=>{const d=new Date((i.date||'')+'T00:00:00');return d>now&&d<=e7;}),
-      month:   pending.filter(i=>{const d=new Date((i.date||'')+'T00:00:00');return d>e7&&d<=nm;}),
-      future:  pending.filter(i=>{const d=new Date((i.date||'')+'T00:00:00');return d>nm&&d<=e90;}),
+    return{
+      overdue:pending.filter(i=>i.date&&daysUntil(i.date)<0),
+      today:pending.filter(i=>i.date&&daysUntil(i.date)===0),
+      week:pending.filter(i=>{if(!i.date)return false;const d=new Date(i.date+'T00:00:00');return d>now&&d<=e7;}),
+      month:pending.filter(i=>{if(!i.date)return false;const d=new Date(i.date+'T00:00:00');return d>e7&&d<=nm;}),
+      future:pending.filter(i=>{if(!i.date)return false;const d=new Date(i.date+'T00:00:00');return d>nm&&d<=e90;}),
+      nodates:pending.filter(i=>!i.date),
     };
   },[pending,kpi,search]);
 
-  const Section = ({label,list}) => {
-    if (!list?.length) return null;
-    return <div className="sec-blk">
-      <div className="sec-hd">{label}<em>{list.length}</em></div>
-      <div className="item-list">{list.map(it=><TaskCard key={it.id} item={it} onEdit={openEdit} onDelete={handleDelete} onToggle={handleToggle}/>)}</div>
-    </div>;
+  const Section=({label,list})=>{
+    if(!list?.length) return null;
+    return <div className="sec-blk"><div className="sec-hd">{label}<em>{list.length}</em></div><div className="item-list">{list.map(it=><TaskCard key={it.id} item={it} onEdit={openEdit} onDelete={handleDelete} onToggle={handleToggle}/>)}</div></div>;
   };
 
-  /* ── Render ── */
-  if (loading) return <div style={{display:'flex',alignItems:'center',justifyContent:'center',height:'100vh',color:'var(--t4)',fontSize:'14px'}}>Loading…</div>;
-  if (!user)   return <AuthScreen onAuth={u=>{setUser(u);loadItems(u);}}/>;
+  if(loading) return <div style={{display:'flex',alignItems:'center',justifyContent:'center',height:'100vh',color:'var(--t4)',fontSize:'14px'}}>Loading…</div>;
+  if(!user)   return <AuthScreen onAuth={u=>{setUser(u);loadItems();}}/>;
 
-  const isFiltered = kpi!=='all'||search.trim();
-
+  const isFiltered=kpi!=='all'||search.trim();
   return (
     <div className="app">
-      {/* SIDEBAR */}
       <aside className="sidebar">
         <div className="sb-logo"><h1>Life Admin</h1><p>Personal Task Manager</p></div>
         <div className="sb-user">Signed in as<strong>{user.email}</strong></div>
@@ -639,91 +499,48 @@ function App() {
             <svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
             Dashboard
           </button>
-          <button className={`nav-it${view==='calendar'?' on':''}`} onClick={()=>setView('calendar')}>
-            {IC.cal} Calendar
-          </button>
+          <button className={`nav-it${view==='calendar'?' on':''}`} onClick={()=>setView('calendar')}>{IC.cal} Calendar</button>
         </nav>
-        <div className="sb-foot">
-          <button className="logout-btn" onClick={handleLogout}>{IC.out} Log Out</button>
-        </div>
+        <div className="sb-foot"><button className="logout-btn" onClick={handleLogout}>{IC.out} Log Out</button></div>
       </aside>
-
-      {/* MAIN */}
       <div className="main">
-        {/* HEADER */}
         <div className="hdr">
           <div className="hdr-top">
-            <div>
-              <h2 className="hdr-title">{view==='calendar'?'Calendar':'Dashboard'}</h2>
-              <p className="hdr-sub">{items.length} total items · {pending.length} pending</p>
-            </div>
+            <div><h2 className="hdr-title">{view==='calendar'?'Calendar':'Dashboard'}</h2><p className="hdr-sub">{items.length} total · {pending.length} pending</p></div>
             <button className="add-btn" onClick={openAdd}>{IC.plus} New Item</button>
           </div>
-          {/* KPI */}
           <div className="kpi-row">
-            {[
-              {k:'today',cls:'k-red', num:stats.today,lbl:'Due Today',    dsc:'overdue + today'},
-              {k:'month',cls:'k-yel', num:stats.month,lbl:'This Month',   dsc:'this calendar month'},
-              {k:'90d',  cls:'k-pur', num:stats.d90,  lbl:'90 Days',      dsc:'within 90 days'},
-              {k:'done', cls:'k-grn', num:stats.done, lbl:'Completed',    dsc:'all time'},
-            ].map(({k,cls,num,lbl,dsc})=>(
+            {[{k:'today',cls:'k-red',num:stats.today,lbl:'Due Today',dsc:'overdue + today'},{k:'month',cls:'k-yel',num:stats.month,lbl:'This Month',dsc:'this calendar month'},{k:'90d',cls:'k-pur',num:stats.d90,lbl:'90 Days',dsc:'within 90 days'},{k:'done',cls:'k-grn',num:stats.done,lbl:'Completed',dsc:'all time'}].map(({k,cls,num,lbl,dsc})=>(
               <div key={k} className={`kpi ${cls}${kpi===k?' on':''}`} onClick={()=>setKpi(p=>p===k?'all':k)}>
-                <div className="kpi-lbl">{lbl}</div>
-                <div className="kpi-num">{num}</div>
-                <div className="kpi-dsc">{dsc}</div>
+                <div className="kpi-lbl">{lbl}</div><div className="kpi-num">{num}</div><div className="kpi-dsc">{dsc}</div>
               </div>
             ))}
           </div>
         </div>
-
-        {/* TOOLBAR */}
         <div className="toolbar">
-          <div className="srch-w">
-            {IC.srch}
-            <input className="srch-in" type="text" placeholder="Search tasks, categories, suppliers…" value={search} onChange={e=>setSearch(e.target.value)}/>
-          </div>
-          {search && <button className="tb-btn" onClick={()=>setSearch('')}>{IC.x} Clear</button>}
-          {kpi!=='all' && <button className={`tb-btn on`} onClick={()=>setKpi('all')}>{IC.x} {kpi==='today'?'Today':kpi==='month'?'Month':kpi==='90d'?'90 Days':'Completed'}</button>}
-          <span className={`sync-badge ${sync==='ok'?'sync-ok':sync==='err'?'sync-err':'sync-ing'}`}>
-            {sync==='ok'?'✓ '+syncMsg:sync==='err'?'⚠ Error':sync==='syncing'?'Syncing…':'Ready'}
-          </span>
+          <div className="srch-w">{IC.srch}<input className="srch-in" type="text" placeholder="Search…" value={search} onChange={e=>setSearch(e.target.value)}/></div>
+          {search&&<button className="tb-btn" onClick={()=>setSearch('')}>{IC.x} Clear</button>}
+          {kpi!=='all'&&<button className="tb-btn on" onClick={()=>setKpi('all')}>{IC.x} {kpi==='today'?'Today':kpi==='month'?'Month':kpi==='90d'?'90 Days':'Completed'}</button>}
+          <span className={`sync-badge ${sync==='ok'?'s-ok':sync==='err'?'s-err':'s-ing'}`}>{sync==='ok'?'✓ '+syncMsg:sync==='err'?'⚠ Error':sync==='syncing'?'Syncing…':'Ready'}</span>
         </div>
-
-        {/* CONTENT */}
         <div className="scroll">
           <div className="content">
-            {view==='calendar' && <CalView items={items}/>}
-            {view==='dashboard' && (
+            {view==='calendar'&&<CalView items={items}/>}
+            {view==='dashboard'&&(
               <>
-                {kpi==='done' && (
-                  completed.length===0
-                    ? <div className="empty"><p>No completed items yet.</p></div>
-                    : <Section label="Completed" list={completed}/>
-                )}
-                {kpi!=='done' && isFiltered && (
-                  filtered.length===0
-                    ? <div className="empty"><p>No items match this filter.</p></div>
-                    : <Section label={kpi==='today'?'Due Today & Overdue':kpi==='month'?'This Month':kpi==='90d'?'Next 90 Days':'Search Results'} list={filtered}/>
-                )}
-                {kpi==='all' && !search.trim() && grouped && (()=>{
-                  const {overdue,today,week,month,future}=grouped;
-                  const empty=!overdue.length&&!today.length&&!week.length&&!month.length&&!future.length;
-                  if (empty) return <div className="empty"><p>Nothing pending — you're all clear! 🎉</p><p style={{marginTop:6,fontSize:13}}>Click <strong>+ New Item</strong> to add tasks.</p></div>;
-                  return <>
-                    <Section label="Overdue"       list={overdue}/>
-                    <Section label="Due Today"     list={today}/>
-                    <Section label="This Week"     list={week}/>
-                    <Section label="This Month"    list={month}/>
-                    <Section label="Next 90 Days"  list={future}/>
-                  </>;
+                {kpi==='done'&&(completed.length===0?<div className="empty"><p>No completed items yet.</p></div>:<Section label="Completed" list={completed}/>)}
+                {kpi!=='done'&&isFiltered&&(filtered.length===0?<div className="empty"><p>No items match.</p></div>:<Section label={kpi==='today'?'Due Today & Overdue':kpi==='month'?'This Month':kpi==='90d'?'Next 90 Days':'Search Results'} list={filtered}/>)}
+                {kpi==='all'&&!search.trim()&&grouped&&(()=>{
+                  const{overdue,today,week,month,future,nodates}=grouped;
+                  const empty=!overdue.length&&!today.length&&!week.length&&!month.length&&!future.length&&!nodates.length;
+                  if(empty) return <div className="empty"><p>Nothing pending 🎉</p><p style={{marginTop:6,fontSize:13}}>Click + New Item to add tasks.</p></div>;
+                  return <><Section label="Overdue" list={overdue}/><Section label="Due Today" list={today}/><Section label="This Week" list={week}/><Section label="This Month" list={month}/><Section label="Next 90 Days" list={future}/><Section label="No Date Set" list={nodates}/></>;
                 })()}
               </>
             )}
           </div>
         </div>
       </div>
-
-      {/* MODAL */}
       <Modal open={modal==='form'} onClose={closeModal} title={editItem?'Edit Item':'New Item'}>
         <ItemForm item={editItem} onSave={handleSave} onCancel={closeModal}/>
       </Modal>
